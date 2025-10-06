@@ -211,129 +211,141 @@ class _HeaderState extends State<Header> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildNavItem(NavItem item, bool isActive, bool showBadge) {
-    return GestureDetector(
-      onTap: () => _handleNavigate(item.page),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          color: isActive ? AppColors.primary.withValues(alpha: 0.1) : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (item.icon != null) ...[
-              Stack(
-                children: [
-                  Icon(
-                    item.icon,
-                    color: isActive ? AppColors.primary : AppColors.grey700,
-                    size: 16,
-                  ),
-                  if (showBadge)
-                    Positioned(
-                      right: -8,
-                      top: -8,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: AppColors.error,
-                          shape: BoxShape.circle,
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 20,
-                          minHeight: 20,
-                        ),
-                        child: Text(
-                          widget.cartItemCount.toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
+Widget _buildNavItem(NavItem item, bool isActive, bool showBadge) {
+  final screenWidth = MediaQuery.of(context).size.width;
+  final isMobile = screenWidth < 600;
+
+  final double iconSize = isMobile ? 22 : 26;
+  final double badgeOffset = isMobile ? -6 : -8;
+  final double badgeFontSize = isMobile ? 9 : 11;
+  final double badgeSize = isMobile ? 16 : 20;
+
+  return GestureDetector(
+    onTap: () => _handleNavigate(item.page),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: isActive ? AppColors.primary.withValues(alpha: 0.1) : null,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (item.icon != null)
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(
+                  item.icon,
+                  color: isActive ? AppColors.primary : AppColors.grey700,
+                  size: iconSize,
+                ),
+                if (showBadge)
+                  Transform.translate(
+                    offset: Offset(badgeOffset, badgeOffset),
+                    child: Container(
+                      width: badgeSize,
+                      height: badgeSize,
+                      alignment: Alignment.center,
+                      decoration: const BoxDecoration(
+                        color: AppColors.error,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        widget.cartItemCount.toString(),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: badgeFontSize,
+                          fontWeight: FontWeight.bold,
+                          height: 1,
                         ),
                       ),
                     ),
-                ],
-              ),
-              const SizedBox(width: 8),
-            ],
-            Text(
-              item.label,
-              style: TextStyle(
-                color: isActive ? AppColors.primary : AppColors.grey700,
-                fontSize: 16,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-              ),
+                  ),
+              ],
             ),
-          ],
-        ),
+          const SizedBox(width: 8),
+          Text(
+            item.label,
+            style: TextStyle(
+              color: isActive ? AppColors.primary : AppColors.grey700,
+              fontSize: isMobile ? 15 : 16,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+            ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
+
+
 
   Widget _buildMobileNavItem(NavItem item, bool isActive, bool showBadge) {
-    return SizedBox(
-      width: double.infinity,
-      child: TropicalButton(
-        onPressed: () => _handleNavigate(item.page),
-        variant: isActive 
-            ? TropicalButtonVariant.primary 
-            : TropicalButtonVariant.secondary,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (item.icon != null) ...[
-              Stack(
-                children: [
-                  Icon(
-                    item.icon,
-                    color: isActive ? Colors.white : AppColors.primary,
-                    size: 16,
-                  ),
-                  if (showBadge)
-                    Positioned(
-                      right: -8,
-                      top: -8,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: AppColors.error,
-                          shape: BoxShape.circle,
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 20,
-                          minHeight: 20,
-                        ),
-                        child: Text(
-                          widget.cartItemCount.toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
+  final screenWidth = MediaQuery.of(context).size.width;
+  final isMobile = screenWidth < 600;
+
+  final double iconSize = isMobile ? 22 : 26;
+  final double badgeOffset = isMobile ? -8 : -10;
+  final double badgeFontSize = isMobile ? 9 : 11;
+  final double badgeSize = isMobile ? 16 : 20;
+
+  return SizedBox(
+    width: double.infinity,
+    child: TropicalButton(
+      onPressed: () => _handleNavigate(item.page),
+      variant: isActive
+          ? TropicalButtonVariant.primary
+          : TropicalButtonVariant.secondary,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (item.icon != null)
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(
+                  item.icon,
+                  color: isActive ? Colors.white : AppColors.primary,
+                  size: iconSize,
+                ),
+                if (showBadge)
+                  Transform.translate(
+                    offset: Offset(badgeOffset, badgeOffset),
+                    child: Container(
+                      width: badgeSize,
+                      height: badgeSize,
+                      alignment: Alignment.center,
+                      decoration: const BoxDecoration(
+                        color: AppColors.error,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        widget.cartItemCount.toString(),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: badgeFontSize,
+                          fontWeight: FontWeight.bold,
+                          height: 1,
                         ),
                       ),
                     ),
-                ],
-              ),
-              const SizedBox(width: 8),
-            ],
-            Text(
-              item.label,
-              style: TextStyle(
-                color: isActive ? Colors.white : AppColors.primary,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+                  ),
+              ],
             ),
-          ],
-        ),
+          const SizedBox(width: 8),
+          Text(
+            item.label,
+            style: TextStyle(
+              color: isActive ? Colors.white : AppColors.primary,
+              fontSize: isMobile ? 15 : 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
-    );
+    ),
+  );
   }
 }
 
