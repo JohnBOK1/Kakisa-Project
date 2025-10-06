@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../main.dart';
 import '../utils/app_colors.dart';
 import 'tropical_button.dart';
+import 'package:vector_math/vector_math_64.dart' as vm;
 
 class Header extends StatefulWidget {
   final PageType currentPage;
@@ -23,6 +24,8 @@ class _HeaderState extends State<Header> with TickerProviderStateMixin {
   bool _isMenuOpen = false;
   late AnimationController _menuAnimationController;
   late Animation<double> _menuAnimation;
+
+   final Set<PageType> _hoveredNavItems = {};
 
   final List<NavItem> _navItems = const [
     NavItem(label: 'Home', page: PageType.home),
@@ -220,60 +223,85 @@ Widget _buildNavItem(NavItem item, bool isActive, bool showBadge) {
   final double badgeFontSize = isMobile ? 9 : 11;
   final double badgeSize = isMobile ? 16 : 20;
 
-  return GestureDetector(
-    onTap: () => _handleNavigate(item.page),
-    child: Container(
+  // Persistent hover state (stored in the state object)
+  final bool isHovered = _hoveredNavItems.contains(item.page);
+
+  return MouseRegion(
+    onEnter: (_) => setState(() => _hoveredNavItems.add(item.page)),
+    onExit:  (_) => setState(() => _hoveredNavItems.remove(item.page)),
+    cursor: SystemMouseCursors.click,
+    child: AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+transform: isHovered
+    ? (Matrix4.identity()..scaleByVector3(vm.Vector3.all(1.05)))
+    : Matrix4.identity(),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: isActive ? AppColors.primary.withValues(alpha: 0.1) : null,
+        color: isActive
+            ? AppColors.primary.withValues(alpha: 0.10)
+            : isHovered
+                ? AppColors.primary.withValues(alpha: 0.05)
+                : null,
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (item.icon != null)
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Icon(
-                  item.icon,
-                  color: isActive ? AppColors.primary : AppColors.grey700,
-                  size: iconSize,
-                ),
-                if (showBadge)
-                  Transform.translate(
-                    offset: Offset(badgeOffset, badgeOffset),
-                    child: Container(
-                      width: badgeSize,
-                      height: badgeSize,
-                      alignment: Alignment.center,
-                      decoration: const BoxDecoration(
-                        color: AppColors.error,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        widget.cartItemCount.toString(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: badgeFontSize,
-                          fontWeight: FontWeight.bold,
-                          height: 1,
+      child: GestureDetector(
+        onTap: () => _handleNavigate(item.page),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (item.icon != null)
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Icon(
+                    item.icon,
+                    color: isActive
+                        ? AppColors.primary
+                        : isHovered
+                            ? AppColors.primary.withValues(alpha: 0.8)
+                            : AppColors.grey700,
+                    size: iconSize,
+                  ),
+                  if (showBadge)
+                    Transform.translate(
+                      offset: Offset(badgeOffset, badgeOffset),
+                      child: Container(
+                        width: badgeSize,
+                        height: badgeSize,
+                        alignment: Alignment.center,
+                        decoration: const BoxDecoration(
+                          color: AppColors.error,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          widget.cartItemCount.toString(),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: badgeFontSize,
+                            fontWeight: FontWeight.bold,
+                            height: 1,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
+            const SizedBox(width: 8),
+            Text(
+              item.label, 
+              style: TextStyle(
+                color: isActive
+                    ? AppColors.primary
+                    : isHovered
+                        ? AppColors.primary.withValues(alpha: 0.8)
+                        : AppColors.grey700,
+                fontSize: isMobile ? 15 : 16,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+              ),
             ),
-          const SizedBox(width: 8),
-          Text(
-            item.label,
-            style: TextStyle(
-              color: isActive ? AppColors.primary : AppColors.grey700,
-              fontSize: isMobile ? 15 : 16,
-              fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     ),
   );

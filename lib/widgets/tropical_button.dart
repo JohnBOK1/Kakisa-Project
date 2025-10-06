@@ -36,8 +36,8 @@ class _TropicalButtonState extends State<TropicalButton>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _glowAnimation;
   late Animation<double> _elevationAnimation;
+  bool _isHovered = false;
 
   @override
   void initState() {
@@ -46,18 +46,10 @@ class _TropicalButtonState extends State<TropicalButton>
       duration: const Duration(milliseconds: 150),
       vsync: this,
     );
-    
+
     _scaleAnimation = Tween<double>(
       begin: 1.0,
       end: 0.95,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
-
-    _glowAnimation = Tween<double>(
-      begin: 0.0,
-      end: 8.0,
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: Curves.easeInOut,
@@ -104,7 +96,7 @@ class _TropicalButtonState extends State<TropicalButton>
     if (widget.backgroundColor != null) {
       return [widget.backgroundColor!, widget.backgroundColor!];
     }
-    
+
     switch (widget.variant) {
       case TropicalButtonVariant.primary:
         return AppColors.tropicalGradient;
@@ -119,7 +111,7 @@ class _TropicalButtonState extends State<TropicalButton>
     if (widget.textColor != null) {
       return widget.textColor!;
     }
-    
+
     switch (widget.variant) {
       case TropicalButtonVariant.primary:
         return Colors.white;
@@ -141,98 +133,109 @@ class _TropicalButtonState extends State<TropicalButton>
     }
   }
 
- Border? get _border {
-  if (widget.variant == TropicalButtonVariant.secondary) {
-    return Border.all(
-      color: widget.onPressed != null ? AppColors.primary : AppColors.grey300,
-      width: 2,
-    );
+  Border? get _border {
+    if (widget.variant == TropicalButtonVariant.secondary) {
+      return Border.all(
+        color: widget.onPressed != null ? AppColors.primary : AppColors.grey300,
+        width: 2,
+      );
+    }
+    return null;
   }
-  return null;
-}
 
   @override
   Widget build(BuildContext context) {
     final isEnabled = widget.onPressed != null && !widget.isLoading;
 
-    return GestureDetector(
-      onTapDown: isEnabled ? (_) => _animationController.forward() : null,
-      onTapUp: isEnabled ? (_) {
-        _animationController.reverse();
-        widget.onPressed?.call();
-      } : null,
-      onTapCancel: () => _animationController.reverse(),
-      child: AnimatedBuilder(
-        animation: _animationController,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: _scaleAnimation.value,
-            child: Container(
-              padding: _padding,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: isEnabled
-                      ? _gradientColors
-                      : [AppColors.grey300, AppColors.grey400],
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      child: GestureDetector(
+        onTapDown: isEnabled ? (_) => _animationController.forward() : null,
+        onTapUp: isEnabled
+            ? (_) {
+                _animationController.reverse();
+                widget.onPressed?.call();
+              }
+            : null,
+        onTapCancel: () => _animationController.reverse(),
+        child: AnimatedBuilder(
+          animation: _animationController,
+          builder: (context, child) {
+            return AnimatedScale(
+              scale: _isHovered ? 1.05 : _scaleAnimation.value,
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+              child: Container(
+                padding: _padding,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: isEnabled
+                        ? _gradientColors
+                        : [AppColors.grey300, AppColors.grey400],
+                  ),
+                  borderRadius: BorderRadius.circular(25),
+                  border: _border,
+                  boxShadow: [
+                    BoxShadow(
+                      color: _isHovered
+                          ? _shadowColor.withValues(alpha: 0.6)
+                          : _shadowColor.withValues(alpha: 0.3),
+                      blurRadius: _isHovered ? 16.0 : 8.0,
+                      spreadRadius: _isHovered ? 2.0 : 0.0,
+                      offset: Offset(0, _elevationAnimation.value),
+                    ),
+                  ],
                 ),
-                borderRadius: BorderRadius.circular(25),
-                border: _border,
-               boxShadow: [
-  BoxShadow(
-    color: _shadowColor,
-    blurRadius: 8.0 + _glowAnimation.value,
-    spreadRadius: _glowAnimation.value / 2,
-    offset: Offset(0, _elevationAnimation.value), // 🔥 use animation here
-  ),
-],
-),
-             
-           child: widget.child ??
-    FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (widget.isLoading) ...[
-            SizedBox(
-              width: _fontSize,
-              height: _fontSize,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(_textColor),
+                child: widget.child ??
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (widget.isLoading) ...[
+                            SizedBox(
+                              width: _fontSize,
+                              height: _fontSize,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(_textColor),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                          ] else if (widget.icon != null) ...[
+                            Icon(
+                              widget.icon,
+                              color: _textColor,
+                              size: _fontSize,
+                            ),
+                            if (widget.text?.isNotEmpty == true)
+                              const SizedBox(width: 8),
+                          ],
+                          if (widget.text?.isNotEmpty == true)
+                            Flexible(
+                              child: Text(
+                                widget.text!,
+                                textAlign: TextAlign.center,
+                                softWrap: false,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: _textColor,
+                                  fontSize: _fontSize,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
               ),
-            ),
-            const SizedBox(width: 8),
-          ] else if (widget.icon != null) ...[
-            Icon(
-              widget.icon,
-              color: _textColor,
-              size: _fontSize,
-            ),
-            if (widget.text?.isNotEmpty == true) const SizedBox(width: 8),
-          ],
-          if (widget.text?.isNotEmpty == true)
-            Flexible(
-              child: Text(
-                widget.text!,
-                textAlign: TextAlign.center,
-                softWrap: false,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: _textColor,
-                  fontSize: _fontSize,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-        ],
-      ),
-    ),
-
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
