@@ -34,7 +34,10 @@ class _BookingsPageState extends State<BookingsPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF0F9FF), // cyan-50
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 40),
+        padding: EdgeInsets.symmetric(
+  vertical: 80,
+  horizontal: MediaQuery.of(context).size.width < 600 ? 16 : 40,
+),  
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1280),
           child: Column(
@@ -215,7 +218,7 @@ class _BookingsPageState extends State<BookingsPage> {
           // Details
           LayoutBuilder(
             builder: (context, constraints) {
-              final isDesktop = constraints.maxWidth >= 140;
+              final isDesktop = constraints.maxWidth >= 800;
               
               if (isDesktop) {
                 return Row(

@@ -38,7 +38,7 @@ class _CartPageState extends State<CartPage> {
   showDialog(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text("Clear Cart"),
+      title: const Text("Clear"),
       content: const Text("Are you sure you want to clear your cart?"),
       actions: [
         TextButton(
@@ -538,7 +538,7 @@ Widget _buildTextFormField({
             children: [
               Expanded(
                 child: TropicalButton(
-                  text: 'Clear Cart',
+                  text: 'Clear',
                   icon: Icons.delete,
                   variant: TropicalButtonVariant.secondary,
                   onPressed: () => _showClearCartDialog(),
